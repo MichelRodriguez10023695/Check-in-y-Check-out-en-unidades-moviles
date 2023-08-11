@@ -17,7 +17,7 @@ const char* password = "AZ3mtcErcpp6NmfeaZ";
 // Configuración de MQTT
 const char* mqttServer = "192.168.0.240";
 const int mqttPort = 1883;
-const char* mqttTopic = "Proyecto/mqtt/ProyectoPoliciaco";
+const char* mqttTopic = "Proyecto/mqtt/ControlPoliciaco";
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
