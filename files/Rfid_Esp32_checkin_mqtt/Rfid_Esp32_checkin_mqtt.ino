@@ -15,7 +15,7 @@ const char* ssid = "IZZI-DA6C";
 const char* password = "AZ3mtcErcpp6NmfeaZ";
 
 // Configuración de MQTT
-const char* mqttServer = "192.168.0.48";
+const char* mqttServer = "192.168.0.240";
 const int mqttPort = 1883;
 const char* mqttTopic = "Proyecto/mqtt/ProyectoPoliciaco";
 
