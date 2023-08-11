@@ -5,6 +5,7 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP32Servo.h>
+#include <HTTPClient.h>
 
 
 // Definiciones de pines y constantes
@@ -426,7 +427,31 @@ String printHex(byte *buffer, byte bufferSize) {
    DatoHexAux.toUpperCase();
    return DatoHexAux;
 }
+void Json(){
+    if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin("http://192.168.0.56:1880/mi-endpoint"); // Cambia esto a la dirección IP y el puerto correctos
+    http.addHeader("Content-Type", "application/json");
 
+    String jsonData = "{\"key\": \"value\"}"; // JSON de ejemplo
+    int httpResponseCode = http.POST(jsonData);
+
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.println(httpResponseCode);
+      Serial.println(response);
+    } else {
+      Serial.print("Error on sending POST request: ");
+      Serial.println(httpResponseCode);
+    }
+
+    http.end();
+  }
+
+  delay(5000); // Espera 5 segundos antes de enviar el siguiente JSON
+}
+
+}
 // Función para reconectar al servidor MQTT
 void reconnect() {
    while (!client.connected()) {
