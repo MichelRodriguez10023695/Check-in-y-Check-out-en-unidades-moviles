@@ -15,9 +15,9 @@ const char* ssid = "IZZI-DA6C";
 const char* password = "AZ3mtcErcpp6NmfeaZ";
 
 // Configuración de MQTT
-const char* mqttServer = "192.168.0.240";
+const char* mqttServer = "broker.hivemq.com";              //Broker publico
 const int mqttPort = 1883;
-const char* mqttTopic = "Proyecto/mqtt/ControlPoliciaco";
+const char* mqttTopic = "Proyecto/mqtt/DatosControl";  
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -109,6 +109,7 @@ void loop() {
         digitalWrite(chout,HIGH);
         delay(500);
         digitalWrite(chout,LOW);
+        digitalWrite(chin,LOW);
         ch3 = true;     
        }
        else if(chaleco1 == DatoHex)
@@ -117,6 +118,7 @@ void loop() {
         digitalWrite(chout,HIGH);
         delay(500);
         digitalWrite(chout,LOW);
+        digitalWrite(chin, LOW);
         ch1 = true;
        }
        else if(placa3 == DatoHex)
@@ -165,9 +167,6 @@ void loop() {
        digitalWrite(chout, LOW);
    }
    if(ch3==true && ar3==true && pl3==true && mq3==false){           //CONDICIONAL DE LECTURA DE LOS TRES ELEMENTOS POR OFICIAL
-         Serial.println("OFICIAL3 CHECK IN COMPLETADO");
-         Serial.println("OFICIAL3 EN SERVICIO");
-         digitalWrite(chin,HIGH);
          //--------------------------------------------------------------
          //envio de Json por mqtt (check in)
          StaticJsonDocument<200> doc;
@@ -177,35 +176,71 @@ void loop() {
            doc["patrulla"] = "3";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
+            //------------------------------------------------------------
+          if (client.publish(mqttTopic, buffer, 1)) {
+          Serial.println("OFICIAL3 CHECK IN COMPLETADO");
+          Serial.println("OFICIAL3 EN SERVICIO");
+          digitalWrite(chin,HIGH);
            mq3 = true;
            ch3 = false;
            ar3 = false;
            pl3 = false;
-         } else if(mq3==true && ch3==true && ar3==true && pl3==true){
-          //-----------------------------------------
-          // envio de Jsaon po mqtt (check out)
-             StaticJsonDocument<200> doc;
+          }
+           else{
+                digitalWrite(chout, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                digitalWrite(chout,LOW);
+               }
+      } 
+      else if(mq3==true && ch3==true && ar3==true && pl3==true){
+         //--------------------------------------------------------------
+         //envio de Json por mqtt (check in)
+         StaticJsonDocument<200> doc;
            doc["nombre"] = "Andres Michel Rodriguez Gordillo";
            doc["check_in"] = "0";
            doc["check_out"] = "1";
            doc["patrulla"] = "3";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
+            //------------------------------------------------------------
+          if (client.publish(mqttTopic, buffer, 1)) {
+          Serial.println("OFICIAL3 CHECK OUT COMPLETADO");
+          Serial.println("OFICIAL3 FUERA DE SERVICIO");
+          digitalWrite(chin,HIGH);
            mq3 = false;
            ch3 = false;
            ar3 = false;
            pl3 = false;
            }
+           else{
+             Serial.println("ERROR REINTENTE DE NUEVO");
+                digitalWrite(chout, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                digitalWrite(chout,LOW);
+                } 
+        }
           //------------------------------------------------------------
          
       else if (ch1==true && ar1 ==true && mq1==false){
-        Serial.println("OFICIAL1 CHAECK IN COMPLETADO");
-        Serial.println("OFICIAL1 EN SERVICIO");
-        digitalWrite(chin,HIGH);
-        //--------------------------------------------------------------
-         //envio de Json por mqtt
+        //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["nombre"] = "Carlos Andres Rivera Villamil";
            doc["check_in"] = "1";
@@ -213,13 +248,33 @@ void loop() {
            doc["patrulla"] = "1";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
+        //------------------------------------------------------------
+          if (client.publish(mqttTopic, buffer, 1)) {
+        Serial.println("OFICIAL1 CHAECK IN COMPLETADO");
+        Serial.println("OFICIAL1 EN SERVICIO");
+        digitalWrite(chin,HIGH);
            mq1 = true;
            ch1 = false;
            ar1 = false;
-          //------------------------------------------------------------
-      } else if(mq1==true && ch1==true && ar1==true){
-          //-----------------------------------------
+
+          } 
+          else{
+             Serial.println("ERROR REINTENTE DE NUEVO");
+                digitalWrite(chout, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                digitalWrite(chout,LOW);
+                } 
+        }
+          else if(mq1==true && ch1==true && ar1==true){
           // envio de Jsaon por mqtt (check out)
              StaticJsonDocument<200> doc;
            doc["nombre"] = "Carlos Andres Rivera Villamil";
@@ -228,12 +283,29 @@ void loop() {
            doc["patrulla"] = "1";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
+           //------------------------------------------------------------
+          if (client.publish(mqttTopic, buffer, 1)) {
+           digitalWrite(chin,HIGH); 
            mq1 = false;
            ch1 = false;
            ar1 = false;
            }
-          //------------------------------------------------------------
+           else{
+             Serial.println("ERROR REINTENTE DE NUEVO");
+                digitalWrite(chout, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                delay(100);
+                digitalWrite(chin, HIGH);
+                delay(100);
+                digitalWrite(chin, LOW);
+                digitalWrite(chout,LOW);
+           }
+          }//------------------------------------------------------------
 
    // Halt PICC
    rfid.PICC_HaltA();

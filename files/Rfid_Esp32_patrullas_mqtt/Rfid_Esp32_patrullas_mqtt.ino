@@ -5,7 +5,6 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP32Servo.h>
-#include <HTTPClient.h>
 
 
 // Definiciones de pines y constantes
@@ -17,9 +16,10 @@ const char* ssid = "IZZI-DA6C";
 const char* password = "AZ3mtcErcpp6NmfeaZ";
 
 // Configuración de MQTT
-const char* mqttServer = "192.168.0.240";   
+const char* mqttServer = "broker.hivemq.com";      //broker publico
+//const char* mqttServer = "ip_local";             //ip local 
 const int mqttPort = 1883;
-const char* mqttTopic = "Proyecto/mqtt/ProyectoPoliciaco";
+const char* mqttTopic = "Proyecto/mqtt/PatrullasControl";
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -74,11 +74,15 @@ void setup() {
    
    pinMode(chin, OUTPUT);
    pinMode(chout, OUTPUT);
+   ch3 = false;
+   ch2 = false;
+   ch1 = false;
    DatoHex = printHex(key.keyByte, MFRC522::MF_KEY_SIZE);
    Serial.println();
    Serial.println();
    Serial.println("Acceso Patrullas Zona Restringida");
    Serial.println("");
+
 }
 
 void loop() {
@@ -100,145 +104,190 @@ void loop() {
    // Comparar los datos de la tarjeta con los datos almacenados
    if (rfid.uid.uidByte[0] != nuidPICC[0] || rfid.uid.uidByte[1] != nuidPICC[1] || rfid.uid.uidByte[2] != nuidPICC[2] || rfid.uid.uidByte[3] != nuidPICC[3] )
      { 
-       // Store NUID into nuidPICC array
+       // se concatenan los datos del lector a un vector para generar el numero hexadecimal
        for (byte i = 0; i < 4; i++) {nuidPICC[i] = rfid.uid.uidByte[i];}
-    
-       DatoHex = printHex(rfid.uid.uidByte, rfid.uid.size);
        
-       if(patrulla3 == DatoHex && ch3==false)
+       DatoHex = printHex(rfid.uid.uidByte, rfid.uid.size);     //se define la variable del vector leido
+
+       //---------------------------------------------------LECTURA DE PATRULLA1---------------------------
+
+       if(patrulla3 == DatoHex && ch3==false)                  // se define la condicional de entrada
        {
-        Serial.println("PATRULLA3 - SALIDA CONCEDIDA");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA3 - SALIDA CONCEDIDA");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "3";
-           doc["estado"] = "patrullando";
+           doc["estado"] = "PATRULLANDO";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch3 = true;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch3 = true; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);
+         }
        }
-       else if(patrulla3 == DatoHex && ch3==true)
+       else if(patrulla3 == DatoHex && ch3==true)          //condicional de dato de entrada
        {
-        Serial.println("PATRULLA3 - ACCESO CONCEDIDO");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA3 - ACCESO CONCEDIDO");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "3";
            doc["estado"] = "Disponible";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch3 = false;     
-       }
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch3 = false; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);
+           }    
+       }//----------------------------------------------------LECTURA DE PATRULLA2--------------
       else if(patrulla2 == DatoHex && ch2==false)
        {
-        Serial.println("PATRULLA2 - SALIDA CONCEDIDA");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA2 - SALIDA CONCEDIDA");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "2";
-           doc["estado"] = "patrullando";
+           doc["estado"] = "PATRULLANDO";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch2 = true;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch3 = true; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);
        }
-       else if(patrulla2 == DatoHex && ch2==true)
+      }
+       else if(patrulla2 == DatoHex && ch2==true) 
        {
-        Serial.println("PATRULLA2 - ACCESO CONCEDIDO");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA2 - ACCESO CONCEDIDO");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "2";
            doc["estado"] = "Disponible";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch2 = false;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch3 = false; 
+          }  
+          else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);
        }
+      } //-------------------------------------------LECTURA DE PATRULLA1---------------------------------------
        else if(patrulla1 == DatoHex && ch1==false)
        {
-        Serial.println("PATRULLA1 - SALIDA CONCEDIDA");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA1 - SALIDA CONCEDIDA");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "1";
-           doc["estado"] = "patrullando";
+           doc["estado"] = "PATRULLANDO";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch1 = true;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch1 = true; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);
        }
+      }
        else if(patrulla1 == DatoHex && ch1==true)
        {
-        Serial.println("PATRULLA1 - ACCESO CONCEDIDO");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA1 - ACCESO CONCEDIDO");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "1";
            doc["estado"] = "Disponible";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch1 = false;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch1 = false; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);     
+       }
        }
          else {
-           // Acceso no permitido
+           //-----------------------------------------------------------Acceso no permitido
            Serial.println("NO ESTA REGISTRADO - PROHIBIDO EL INGRESO");
            digitalWrite(chin, HIGH);
            delay(100);
@@ -248,140 +297,182 @@ void loop() {
            delay(100);
            digitalWrite(chin, LOW);
        }
-       
+       // si al tarjeta se escanea consecuitivamente-----------
    } else {
        Serial.println("TARJETA LEIDA PREVIAMENTE");
       if(patrulla3 == DatoHex && ch3==true)
        {
-        Serial.println("PATRULLA3 - ACCESO CONCEDIDO");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA3 - ACCESO CONCEDIDO");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "3";
-           doc["estado"] = "Disponible";
+           doc["estado"] = "DISPONIBLE";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
-          //------------------------------------------------------------
-          ch3 = false;     
+          //------------------------------------------
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch3 = false; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);     
        }
+      }
        else if(patrulla3 == DatoHex && ch3==false)
        {
-        Serial.println("PATRULLA3 - SALIDA CONCEDIDA");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA3 - SALIDA CONCEDIDA");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "3";
-           doc["estado"] = "Patrullando";
+           doc["estado"] = "PATRULLANDO";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch3 = true;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch3 = true; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);     
        }
+      }
        else if(patrulla2 == DatoHex && ch2==false)
        {
-        Serial.println("PATRULLA2 - SALIDA CONCEDIDA");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA2 -SALIDA CONCEDIDA");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "2";
-           doc["estado"] = "patrullando";
+           doc["estado"] = "PATRULLANDO";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch2 = true;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch2 = true; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);     
+       }
        }
        else if(patrulla2 == DatoHex && ch2==true)
        {
-        Serial.println("PATRULLA2 - ACCESO CONCEDIDO");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA2 - ACCESO CONCEDIDO");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "2";
-           doc["estado"] = "Disponible";
+           doc["estado"] = "DISPONIBLE";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch2 = false;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch2 = false; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);     
+       }
        }
        else if(patrulla1 == DatoHex && ch1==false)
        {
-        Serial.println("PATRULLA1 - SALIDA CONCEDIDA");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA1 - SALIDA CONCEDIDA");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "1";
-           doc["estado"] = "patrullando";
+           doc["estado"] = "PATRULLANDO";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch1 = true;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch1 = true; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);     
+       }
        }
        else if(patrulla1 == DatoHex && ch1==true)
        {
-        Serial.println("PATRULLA1 - ACCESO CONCEDIDO");
-        digitalWrite(chout,HIGH);
+        Serial.println("PATRULLA1 - ACCESO CONCEDIDO");    //se imprime el dato en el monitor serial
+        digitalWrite(chout,HIGH);                          //se enciende el indicador LED
         delay(500);
         digitalWrite(chout,LOW);
-        //se abre la pluma
-        myservo.write(90);
-        delay(3000);
-        myservo.write(1);
-        delay(100);
-        //--------------------------------------------------------------
+       //--------------------------------------------------------------
          //envio de Json por mqtt
          StaticJsonDocument<200> doc;
            doc["patrulla"] = "1";
-           doc["estado"] = "Disponible";
+           doc["estado"] = "DISPONIBLE";
            char buffer[200];
            serializeJson(doc, buffer);
-           client.publish(mqttTopic, buffer);
           //------------------------------------------------------------
-          ch1 = false;     
+          if (client.publish(mqttTopic, buffer, 1)) {
+           Serial.println("JSON enviado exitosamente por MQTT con confirmación");
+          //se abre la pluma
+          myservo.write(90);
+          delay(3000);
+          myservo.write(1);
+          delay(100);
+          ch1 = false; 
+          } else {
+          Serial.println("Error al enviar el JSON por MQTT");
+          digitalWrite(chin,HIGH);                          //se enciende el indicador LED
+          delay(1000);
+          digitalWrite(chin,LOW);     
+       }
        }
          else {
            // Acceso no permitido
@@ -427,31 +518,7 @@ String printHex(byte *buffer, byte bufferSize) {
    DatoHexAux.toUpperCase();
    return DatoHexAux;
 }
-void Json(){
-    if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin("http://192.168.0.56:1880/mi-endpoint"); // Cambia esto a la dirección IP y el puerto correctos
-    http.addHeader("Content-Type", "application/json");
 
-    String jsonData = "{\"key\": \"value\"}"; // JSON de ejemplo
-    int httpResponseCode = http.POST(jsonData);
-
-    if (httpResponseCode > 0) {
-      String response = http.getString();
-      Serial.println(httpResponseCode);
-      Serial.println(response);
-    } else {
-      Serial.print("Error on sending POST request: ");
-      Serial.println(httpResponseCode);
-    }
-
-    http.end();
-  }
-
-  delay(5000); // Espera 5 segundos antes de enviar el siguiente JSON
-}
-
-}
 // Función para reconectar al servidor MQTT
 void reconnect() {
    while (!client.connected()) {
