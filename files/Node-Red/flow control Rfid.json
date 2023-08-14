@@ -2,7 +2,7 @@
     {
         "id": "0133ddad3250fc36",
         "type": "tab",
-        "label": "Flow Demostrativo Control",
+        "label": "Flow control Rfid",
         "disabled": false,
         "info": "",
         "env": []
@@ -15,7 +15,7 @@
         "topic": "Proyecto/mqtt/PatrullasControl",
         "qos": "2",
         "datatype": "auto-detect",
-        "broker": "a7ddd4d836a4cd1e",
+        "broker": "1cf4394e3811019a",
         "nl": false,
         "rap": true,
         "rh": 0,
@@ -24,7 +24,9 @@
         "y": 200,
         "wires": [
             [
-                "41cca7b740fb663a"
+                "41cca7b740fb663a",
+                "f3d540dac3cbf5e6",
+                "8a5fa8e8384adb8b"
             ]
         ]
     },
@@ -39,8 +41,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 440,
-        "y": 200,
+        "x": 460,
+        "y": 220,
         "wires": [
             [
                 "ed3c2e5dcfe64079",
@@ -141,7 +143,7 @@
         "topic": "Proyecto/mqtt/DatosControl",
         "qos": "2",
         "datatype": "auto-detect",
-        "broker": "a7ddd4d836a4cd1e",
+        "broker": "1cf4394e3811019a",
         "nl": false,
         "rap": true,
         "rh": 0,
@@ -150,7 +152,9 @@
         "y": 480,
         "wires": [
             [
-                "cab73e6d9d588238"
+                "cab73e6d9d588238",
+                "f3d540dac3cbf5e6",
+                "b18b5ce16ec92021"
             ]
         ]
     },
@@ -166,7 +170,7 @@
         "finalize": "",
         "libs": [],
         "x": 480,
-        "y": 480,
+        "y": 500,
         "wires": [
             [
                 "c2b8fc3ba811108b",
@@ -224,10 +228,62 @@
         "wires": []
     },
     {
-        "id": "a7ddd4d836a4cd1e",
+        "id": "f3d540dac3cbf5e6",
+        "type": "debug",
+        "z": "0133ddad3250fc36",
+        "name": "debug 13",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "8a5fa8e8384adb8b",
+        "type": "mqtt out",
+        "z": "0133ddad3250fc36",
+        "name": "",
+        "topic": "Proyecto/mqtt/PatrullasControl",
+        "qos": "2",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7ddd4d836a4cd1e",
+        "x": 830,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "b18b5ce16ec92021",
+        "type": "mqtt out",
+        "z": "0133ddad3250fc36",
+        "name": "",
+        "topic": "Proyecto/mqtt/PatrullasControl",
+        "qos": "2",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7ddd4d836a4cd1e",
+        "x": 870,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "1cf4394e3811019a",
         "type": "mqtt-broker",
-        "name": "Broker.hivemq",
-        "broker": "broker.hivemq.com",
+        "name": "",
+        "broker": "mosquitto",
         "port": "1883",
         "clientid": "",
         "autoConnect": true,
@@ -271,6 +327,33 @@
         "width": "6",
         "collapse": false,
         "className": ""
+    },
+    {
+        "id": "a7ddd4d836a4cd1e",
+        "type": "mqtt-broker",
+        "name": "Broker.hivemq",
+        "broker": "broker.hivemq.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
     },
     {
         "id": "f00f39f9184c9d25",
